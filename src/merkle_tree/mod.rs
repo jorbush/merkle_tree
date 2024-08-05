@@ -20,8 +20,7 @@ impl MerkleTree {
             let mut next_layer = Vec::new();
             for chunk in current_layer.chunks(2) {
                 if chunk.len() == 2 {
-                    let combined = format!("{}{}", &chunk[0], &chunk[1]);
-                    next_layer.push(Self::hash(&combined));
+                    next_layer.push(Self::hash(&format!("{}{}", &chunk[0], &chunk[1])));
                 } else {
                     next_layer.push(chunk[0].clone());
                 }
@@ -79,7 +78,7 @@ impl MerkleTree {
             println!("Empty tree");
             return;
         }
-
+        println!();
         let total_width = 50;
         let root = &self.layers.last().unwrap()[0];
         println!("{:^width$}", root, width = total_width);
@@ -101,6 +100,7 @@ impl MerkleTree {
                 println!();
             }
         }
+        println!();
     }
 }
 
@@ -203,5 +203,28 @@ mod tests {
         ];
         let tree = MerkleTree::new(leaves);
         tree.print_tree();
+    }
+
+    #[test]
+    fn test_single_leaf() {
+        let leaves = vec!["a".to_string()];
+        let tree = MerkleTree::new(leaves);
+        let root = tree.get_root();
+        let proof = tree.get_proof(0); // Get proof for "a"
+        let is_valid = MerkleTree::verify_proof(&root, "a", &proof);
+        assert!(is_valid);
+    }
+
+    #[test]
+    fn test_large_tree() {
+        let leaves = (0..100)
+            .map(|i| format!("leaf{}", i))
+            .collect::<Vec<String>>();
+        let tree = MerkleTree::new(leaves.clone());
+        for (i, leaf) in leaves.iter().enumerate() {
+            let proof = tree.get_proof(i);
+            let is_valid = MerkleTree::verify_proof(&tree.get_root(), leaf, &proof);
+            assert!(is_valid, "Failed for leaf {}", leaf);
+        }
     }
 }
