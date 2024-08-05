@@ -45,16 +45,15 @@ impl MerkleTree {
         let mut current_index = index;
 
         for layer in &self.layers[..self.layers.len() - 1] {
-            let sibling_index = if current_index % 2 == 0 {
+            let is_left = current_index % 2 == 0;
+            let sibling_index = if is_left {
                 current_index + 1
             } else {
                 current_index - 1
             };
-
             if sibling_index < layer.len() {
-                proof.push((layer[sibling_index].clone(), current_index % 2 == 1));
+                proof.push((layer[sibling_index].clone(), !is_left)); // sibling is on the opposite side
             }
-
             current_index /= 2;
         }
 
