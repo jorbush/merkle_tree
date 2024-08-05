@@ -13,7 +13,7 @@ fn main() {
     let tree = MerkleTree::new(leaves);
     println!("Merkle Root: {}", tree.get_root());
 
-    MerkleTree::show_layers(&tree);
+    MerkleTree::print_tree(&tree);
 
     let index = 2;
     let proof = tree.get_proof(index);
