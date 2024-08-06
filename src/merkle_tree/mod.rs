@@ -14,6 +14,12 @@ impl MerkleTree {
         tree
     }
 
+    pub fn add_leaf(&mut self, leaf: String) {
+        self.layers[0].push(Self::hash(&leaf));
+        self.layers.truncate(1);
+        self.build_tree();
+    }
+
     fn build_tree(&mut self) {
         let mut current_layer = self.layers[0].clone();
         while current_layer.len() > 1 {
@@ -79,8 +85,6 @@ impl MerkleTree {
         }
         println!();
         let total_width = 50;
-        let root = &self.layers.last().unwrap()[0];
-        println!("{:^width$}", root, width = total_width);
 
         for (i, layer) in self.layers.iter().rev().enumerate() {
             let node_width = total_width / layer.len();
@@ -225,5 +229,53 @@ mod tests {
             let is_valid = MerkleTree::verify_proof(&tree.get_root(), leaf, &proof);
             assert!(is_valid, "Failed for leaf {}", leaf);
         }
+    }
+
+    #[test]
+    fn test_add_leaf() {
+        let leaves = vec![
+            "a".to_string(),
+            "b".to_string(),
+            "c".to_string(),
+            "d".to_string(),
+        ];
+        let mut tree = MerkleTree::new(leaves);
+
+        println!("Initial tree:");
+        tree.print_tree();
+
+        // Verify initial state
+        let root = tree.get_root();
+        let proof = tree.get_proof(2); // Get proof for "c"
+        let is_valid = MerkleTree::verify_proof(&root, "c", &proof);
+        assert!(is_valid, "Initial proof for 'c' should be valid");
+
+        println!("Initial proof: {:?}", proof);
+
+        // Add new leaf
+        tree.add_leaf("e".to_string());
+
+        println!("Tree after adding 'e':");
+        tree.print_tree();
+
+        // Get new root and new proof for "c"
+        let new_root = tree.get_root();
+        let new_proof = tree.get_proof(2); // Get new proof for "c"
+
+        println!("New proof: {:?}", new_proof);
+
+        // Verify new proof
+        let is_valid = MerkleTree::verify_proof(&new_root, "c", &new_proof);
+        assert!(
+            is_valid,
+            "New proof for 'c' should be valid after adding 'e'"
+        );
+
+        // Optionally, verify that the old proof is no longer valid
+        let is_old_valid = MerkleTree::verify_proof(&new_root, "c", &proof);
+        assert!(
+            !is_old_valid,
+            "Old proof should no longer be valid with new root"
+        );
     }
 }

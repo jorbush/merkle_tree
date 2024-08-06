@@ -10,7 +10,7 @@ fn main() {
         "d".to_string(),
     ];
 
-    let tree = MerkleTree::new(leaves);
+    let mut tree = MerkleTree::new(leaves);
     println!("Merkle Root: {}", tree.get_root());
 
     MerkleTree::print_tree(&tree);
@@ -23,4 +23,11 @@ fn main() {
     let root = tree.get_root();
     let is_valid = MerkleTree::verify_proof(&root, leaf, &proof);
     println!("Proof verification: {}", is_valid);
+
+    let new_leaf = "e";
+    tree.add_leaf(new_leaf.to_string());
+    let new_root = tree.get_root();
+    let new_proof = tree.get_proof(4);
+    let new_is_valid = MerkleTree::verify_proof(&new_root, new_leaf, &new_proof);
+    println!("Proof verification for new leaf: {}", new_is_valid);
 }
